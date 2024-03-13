@@ -54,8 +54,3 @@ class User(AbstractUser):
     @property
     def name(self):
         return f'{self.first_name} {self.last_name}'
-
-    @property
-    def revenue(self):
-        orders = Order.objects.filter(user_id=self.pk, complete=True)
-        return sum(o.ambassador_revenue for o in orders)

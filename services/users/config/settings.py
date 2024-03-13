@@ -85,6 +85,14 @@ DATABASES = {
         'PASSWORD': 'root',
         'HOST': 'users_db',
         'PORT': '3306',
+    },
+    'old': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ambassador',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': 'host.docker.internal',
+        'PORT': '33066',
     }
 }
 
