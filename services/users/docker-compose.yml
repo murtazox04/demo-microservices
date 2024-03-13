@@ -1,0 +1,21 @@
+version: '3.9'
+services:
+  users_backed:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - 8001:8000
+    depends_on:
+      - users_db
+  
+  users_db:
+    image: mysql:8
+    restart: always
+    environment:
+      - MYSQL_DATABASE=users
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - .dbdata:/var/lib/mysql
+
+  
