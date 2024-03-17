@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+  backend:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DATABASE: ambassador
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_ROOT_PASSWORD: root
+    volumes:
+      - postgres:/data/postgres
+    restart: unless-stopped
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+
+volumes:
+  postgres:
