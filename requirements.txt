@@ -1,4 +1,4 @@
-Django==3.1.7
+Django==3.2.24
 djangorestframework==3.12.2
 mysqlclient==2.0.3
 django-mysql==3.11.1
