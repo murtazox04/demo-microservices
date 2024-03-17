@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-nx61#0s_4wlzc^cff#x$)%80a5+6@be+1(x-f$^3=m&5%21fc+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -79,20 +79,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'users',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'users_db',
-        'PORT': '3306',
+        'PORT': '5432',
     },
     'old': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ambassador',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'host.docker.internal',
-        'PORT': '33066',
+        'PORT': '55432',
     }
 }
 
