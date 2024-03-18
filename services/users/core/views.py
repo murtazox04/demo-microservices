@@ -1,10 +1,11 @@
+from datetime import datetime, timedelta
 from rest_framework import exceptions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
-from core.models import User
+from .models import User, UserToken
 from .serializers import UserSerializer
 from .authentication import JWTAuthentication
 
@@ -41,6 +42,13 @@ class LoginAPIView(APIView):
 
         token = JWTAuthentication.generate_jwt(user.id, scope)
 
+        UserToken.objects.create(
+            user_id=user.id,
+            token=token,
+            created_at=datetime.now(),
+            expired_at=datetime.now() + timedelta(days=1)
+        )
+
         return Response({
             'jwt': token
         })
@@ -58,14 +66,12 @@ class LogoutAPIView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self, _):
-        response = Response()
-        response.delete_cookie(key='jwt')
-        response.data = {
-            'message': 'Successfully logged out'
-        }
+    def post(self, request):
+        UserToken.objects.delete(user_id=request.user.id)
 
-        return response
+        return Response({
+            'message': 'Successfully logged out'
+        })
 
 
 class ProfileInfoAPIView(APIView):

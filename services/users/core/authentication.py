@@ -4,7 +4,7 @@ from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication
 
 from config import settings
-from core.models import User
+from .models import User, UserToken
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -29,6 +29,13 @@ class JWTAuthentication(BaseAuthentication):
 
         if user is None:
             raise exceptions.AuthenticationFailed('User Not Found!')
+
+        if not UserToken.objects.filter(
+                user_id=user.id,
+                token=token,
+                expired_at__gt=datetime.datetime.now()
+        ).exists():
+            raise exceptions.AuthenticationFailed('Invalid Token!')
 
         return (user, None)
 
