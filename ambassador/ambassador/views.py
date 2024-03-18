@@ -1,17 +1,18 @@
-import math, random, time, string
+import math
+import time
+import random
+import string
 
+from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django_redis import get_redis_connection
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from common.authentication import JWTAuthentication
-from common.serializers import UserSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django_redis import get_redis_connection
+
+from core.models import Product, Link, Order
 from .serializer import ProductSerializer, LinkSerializer
-from core.models import Product, Link, Order, User
-from django.core.cache import cache
 
 
 class ProductFrontendAPIView(APIView):
@@ -64,14 +65,12 @@ class ProductBackendAPIView(APIView):
 
 
 class LinkAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user = request.user
+        user = request.user_ms
 
         serializer = LinkSerializer(data={
-            'user': user.id,
+            'user': user['id'],
             'code': ''.join(random.choices(string.ascii_lowercase + string.digits, k=6)),
             'products': request.data['products']
         })
@@ -82,13 +81,11 @@ class LinkAPIView(APIView):
 
 
 class StatsAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
+        user = request.user_ms
 
-        links = Link.objects.filter(user_id=user.id)
+        links = Link.objects.filter(user_id=user['id'])
 
         return Response([self.format(link) for link in links])
 
@@ -103,13 +100,12 @@ class StatsAPIView(APIView):
 
 
 class RankingsAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         con = get_redis_connection("default")
 
-        rankings = con.zrevrangebyscore('rankings', min=0, max=10000, withscores=True)
+        rankings = con.zrevrangebyscore(
+            'rankings', min=0, max=10000, withscores=True)
 
         return Response({
             r[0].decode("utf-8"): r[1] for r in rankings

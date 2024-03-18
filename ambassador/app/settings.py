@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'core',
     'administrator',
     'ambassador',
-    'checkout'
+    'checkout',
+    'common'
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'common.middleware.AuthMiddleware',
 ]
 
 ROOT_URLCONF = 'app.urls'

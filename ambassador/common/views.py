@@ -34,7 +34,7 @@ class UserAPIView(APIView):
         # if 'api/ambassador' in request.path:
         #     data['revenue'] = user.revenue
 
-        return Response(UserService.get('/user', headers=request.headers))
+        return Response(request.user_ms)
 
 
 class LogoutAPIView(APIView):
