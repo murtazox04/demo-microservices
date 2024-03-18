@@ -9,7 +9,7 @@ djangorestframework==3.12.2
 Faker==6.6.1
 idna==3.6
 psycopg2-binary==2.9.9
-PyJWT==2.0.1
+PyJWT==2.4.0
 python-dateutil==2.9.0.post0
 pytz==2024.1
 redis==5.0.3
