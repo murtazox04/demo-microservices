@@ -1,15 +1,16 @@
 from django.core.management import BaseCommand
 from django_redis import get_redis_connection
 
-from core.models import User
+from common.services import UserService
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         con = get_redis_connection("default")
 
-        ambassadors = User.objects.filter(is_ambassador=True)
+        users = UserService.get('/users')
+        ambassadors = filter(lambda u: u['is_ambassador'], users)
 
         for ambassador in ambassadors:
-            print(ambassador.name, float(ambassador.revenue))
-            con.zadd('rankings', {ambassador.name: float(ambassador.revenue)})
+            name = ambassador['first_name'] + ' ' + ambassador['last_name']
+            con.zadd('rankings', {name: float(ambassador['revenue'])})

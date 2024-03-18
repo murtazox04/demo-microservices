@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import LinkSerializer
+from common.services import UserService
 from core.models import Link, Order, Product, OrderItem
 import decimal
 from django.core.mail import send_mail
@@ -25,13 +26,15 @@ class OrderAPIView(APIView):
         data = request.data
         link = Link.objects.filter(code=data['code']).first()
 
+        user = UserService.get('/users/' + link.user_id)
+
         if not link:
             raise exceptions.APIException('Invalid code!')
         try:
             order = Order()
             order.code = link.code
-            order.user_id = link.user.id
-            order.ambassador_email = link.user.email
+            order.user_id = link.user_id
+            order.ambassador_email = user['email']
             order.first_name = data['first_name']
             order.last_name = data['last_name']
             order.email = data['email']
@@ -52,8 +55,10 @@ class OrderAPIView(APIView):
                 order_item.product_title = product.title
                 order_item.price = product.price
                 order_item.quantity = quantity
-                order_item.ambassador_revenue = decimal.Decimal(.1) * product.price * quantity
-                order_item.admin_revenue = decimal.Decimal(.9) * product.price * quantity
+                order_item.ambassador_revenue = decimal.Decimal(
+                    .1) * product.price * quantity
+                order_item.admin_revenue = decimal.Decimal(
+                    .9) * product.price * quantity
                 order_item.save()
 
                 line_items.append({
@@ -90,7 +95,8 @@ class OrderAPIView(APIView):
 
 class OrderConfirmAPIView(APIView):
     def post(self, request):
-        order = Order.objects.filter(transaction_id=request.data['source']).first()
+        order = Order.objects.filter(
+            transaction_id=request.data['source']).first()
         if not order:
             raise exceptions.APIException('Order not found!')
 
@@ -100,14 +106,16 @@ class OrderConfirmAPIView(APIView):
         # Admin Email
         send_mail(
             subject='An Order has been completed',
-            message='Order #' + str(order.id) + 'with a total of $' + str(order.admin_revenue) + ' has been completed!',
+            message='Order #' + str(order.id) + 'with a total of $' +
+            str(order.admin_revenue) + ' has been completed!',
             from_email='from@email.com',
             recipient_list=['admin@admin.com']
         )
 
         send_mail(
             subject='An Order has been completed',
-            message='You earned $' + str(order.ambassador_revenue) + ' from the link #' + order.code,
+            message='You earned $' +
+            str(order.ambassador_revenue) + ' from the link #' + order.code,
             from_email='from@email.com',
             recipient_list=[order.ambassador_email]
         )
