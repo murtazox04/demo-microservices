@@ -43,17 +43,18 @@ class UserAPIView(APIView):
         # if 'api/ambassador' in request.path:
         #     data['revenue'] = user.revenue
 
-        response = requests.post(
+        response = requests.get(
             'http://host.docker.internal:8001/api/user', headers=request.headers).json()
 
         return Response(response)
 
 
 class LogoutAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def post(self, _):
+        requests.post(
+            'http://host.docker.internal:8001/api/logout', []).json()
+
         response = Response()
         response.delete_cookie(key='jwt')
         response.data = {
@@ -63,8 +64,6 @@ class LogoutAPIView(APIView):
 
 
 class ProfileInfoAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def put(self, request, pk=None):
         user = request.user
@@ -75,8 +74,6 @@ class ProfileInfoAPIView(APIView):
 
 
 class ProfilePasswordAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def put(self, request, pk=None):
         user = request.user
