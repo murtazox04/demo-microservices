@@ -1,31 +1,24 @@
-from rest_framework import generics, mixins
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from .serializers import ProductSerializer, LinkSerializer, OrderSerializer
-from common.authentication import JWTAuthentication
-from common.serializers import UserSerializer
-from core.models import User, Product, Link, Order
 from django.core.cache import cache
+from rest_framework.views import APIView
+from rest_framework import generics, mixins
+from rest_framework.response import Response
+
+from common.services import UserService
+from core.models import Product, Link, Order
+from .serializers import ProductSerializer, LinkSerializer, OrderSerializer
 
 
 class AmbassadorAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, _):
-        ambassadors = User.objects.filter(is_ambassador=True)
-        serializer = UserSerializer(ambassadors, many=True)
-        return Response(serializer.data)
+        users = UserService.get('/users')
+        return Response(filter(lambda a: a['is_ambassador'], users))
 
 
 class ProductGenericAPIView(
     generics.GenericAPIView, mixins.RetrieveModelMixin, mixins.ListModelMixin, mixins.CreateModelMixin,
     mixins.UpdateModelMixin, mixins.DestroyModelMixin
 ):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -61,8 +54,6 @@ class ProductGenericAPIView(
 
 
 class LinkAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
         links = Link.objects.filter(user_id=pk)
@@ -71,8 +62,6 @@ class LinkAPIView(APIView):
 
 
 class OrderAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         orders = Order.objects.filter(complete=True)
