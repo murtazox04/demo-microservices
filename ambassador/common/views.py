@@ -38,17 +38,15 @@ class LoginAPIView(APIView):
 
 
 class UserAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        data = UserSerializer(user).data
+        # if 'api/ambassador' in request.path:
+        #     data['revenue'] = user.revenue
 
-        if 'api/ambassador' in request.path:
-            data['revenue'] = user.revenue
+        response = requests.post(
+            'http://host.docker.internal:8001/api/user', headers=request.headers).json()
 
-        return Response(data)
+        return Response(response)
 
 
 class LogoutAPIView(APIView):
