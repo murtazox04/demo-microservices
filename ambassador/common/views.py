@@ -22,26 +22,14 @@ class RegisterAPIView(APIView):
 
 class LoginAPIView(APIView):
     def post(self, request):
-        email = request.data['email']
-        password = request.data['password']
+        data = request.data
+        data['scope'] = 'ambassador' if 'api/ambassador' in request.path else 'admin'
 
-        user = User.objects.filter(email=email).first()
-
-        if user is None:
-            raise exceptions.AuthenticationFailed('User not found!')
-
-        if not user.check_password(password):
-            raise exceptions.AuthenticationFailed('Incorrect Password!')
-
-        scope = 'ambassador' if 'api/ambassador' in request.path else 'admin'
-
-        if user.is_ambassador and scope == 'admin':
-            raise exceptions.AuthenticationFailed('Unauthorized')
-
-        token = JWTAuthentication.generate_jwt(user.id, scope)
+        resp = requests.post(
+            'http://host.docker.internal:8001/api/login', data).json()
 
         response = Response()
-        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.set_cookie(key='jwt', value=resp['jwt'], httponly=True)
         response.data = {
             'message': 'success'
         }
