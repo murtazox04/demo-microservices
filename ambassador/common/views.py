@@ -1,12 +1,9 @@
-import requests
 from rest_framework import exceptions
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.models import User
-from .authentication import JWTAuthentication
 from .serializers import UserSerializer
+from .services import UserService
 
 
 class RegisterAPIView(APIView):
@@ -14,10 +11,7 @@ class RegisterAPIView(APIView):
         data = request.data
         data['is_ambassador'] = 'api/ambassador' in request.path
 
-        response = requests.post(
-            'http://host.docker.internal:8001/api/register', data)
-
-        return Response(response.json())
+        return Response(UserService.post('/register', data=data))
 
 
 class LoginAPIView(APIView):
@@ -25,8 +19,7 @@ class LoginAPIView(APIView):
         data = request.data
         data['scope'] = 'ambassador' if 'api/ambassador' in request.path else 'admin'
 
-        resp = requests.post(
-            'http://host.docker.internal:8001/api/login', data).json()
+        resp = UserService.post('/login', data=data)
 
         response = Response()
         response.set_cookie(key='jwt', value=resp['jwt'], httponly=True)
@@ -43,17 +36,13 @@ class UserAPIView(APIView):
         # if 'api/ambassador' in request.path:
         #     data['revenue'] = user.revenue
 
-        response = requests.get(
-            'http://host.docker.internal:8001/api/user', headers=request.headers).json()
-
-        return Response(response)
+        return Response(UserService.get('/user', headers=request.headers))
 
 
 class LogoutAPIView(APIView):
 
-    def post(self, _):
-        requests.post(
-            'http://host.docker.internal:8001/api/logout', []).json()
+    def post(self, request):
+        UserService.post('/logout', headers=request.headers)
 
         response = Response()
         response.delete_cookie(key='jwt')
@@ -66,22 +55,10 @@ class LogoutAPIView(APIView):
 class ProfileInfoAPIView(APIView):
 
     def put(self, request, pk=None):
-        user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        return Response(UserService.put('/users/info', data=request.data))
 
 
 class ProfilePasswordAPIView(APIView):
 
     def put(self, request, pk=None):
-        user = request.user
-        data = request.data
-
-        if data['password'] != data['password_confirm']:
-            raise exceptions.APIException('Passwords do not match!')
-
-        user.set_password(data['password'])
-        user.save()
-        return Response(UserSerializer(user).data)
+        return Response(UserService.put('/users/password', data=request.data))
