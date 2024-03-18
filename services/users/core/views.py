@@ -100,3 +100,11 @@ class ProfilePasswordAPIView(APIView):
         user.set_password(data['password'])
         user.save()
         return Response(UserSerializer(user).data)
+
+
+class UsersAPIView(APIView):
+    def get(self, _, pk=None):
+        if pk is None:
+            return Response(UserSerializer(User.objects.all(), many=True).data)
+
+        return Response(UserSerializer(User.objects.get(pk=pk)).data)
