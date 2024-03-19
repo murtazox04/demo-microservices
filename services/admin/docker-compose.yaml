@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  admin_backend:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - 8002:8000
+    depends_on:
+      - admin_db
+    networks:
+      - admin
+      - users
+
+  admin_db:
+    image: postgres
+    environment:
+      POSTGRES_DATABASE: admin
+      POSTGRES_ROOT_PASSWORD: root
+    volumes:
+      - postgres:/data/postgres
+    restart: unless-stopped
+    networks:
+      - admin
+
+volumes:
+  postgres:
+
+networks:
+  admin:
+  users:
+    external:
+      name: users
