@@ -2,12 +2,13 @@ version: '3.9'
 services:
   users_backed:
     build: .
+    container_name: users-ms
     volumes:
       - .:/app
-    ports:
-      - 8001:8000
     depends_on:
       - users_db
+    networks:
+      - users
 
   users_db:
     image: postgres
@@ -17,6 +18,12 @@ services:
     volumes:
       - postgres:/data/postgres
     restart: unless-stopped
+    networks:
+      - users
 
 volumes:
   postgres:
+
+networks:
+  users:
+    name: users
