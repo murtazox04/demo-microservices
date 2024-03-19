@@ -55,10 +55,34 @@ class LoginAPIView(APIView):
 
 
 class UserAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, scope=''):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise exceptions.AuthenticationFailed('Invalid Token!')
+
+        payload = JWTAuthentication.get_payload(token)
+
+        user = User.objects.get(pk=payload['user_id'])
+
+        if user is None:
+            raise exceptions.AuthenticationFailed('User Not Found!')
+
+        if not UserToken.objects.filter(
+                user_id=user.id,
+                token=token,
+                expired_at__gt=datetime.datetime.now()
+        ).exists():
+            raise exceptions.AuthenticationFailed('Invalid Token!')
+
+        scope_admin_user_ambassador = user.is_ambassador and payload['scope'] != 'ambassador'
+        scope_ambassador_user_admin = not user.is_ambassador and payload['scope'] != 'admin'
+        scope_path_different = payload['scope'] != scope
+
+        if scope_admin_user_ambassador or scope_ambassador_user_admin or scope_path_different:
+            raise exceptions.AuthenticationFailed('Unauthenticated')
+
         return Response(UserSerializer(request.user).data)
 
 

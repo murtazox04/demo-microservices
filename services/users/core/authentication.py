@@ -16,11 +16,7 @@ class JWTAuthentication(BaseAuthentication):
         if not token:
             return None
 
-        try:
-            payload = jwt.decode(
-                token, settings.SECRET_KEY, algorithms=['HS256'])
-        except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('Unauthenticated')
+        payload = JWTAuthentication.get_payload(token)
 
         if (is_ambassador and payload['scope'] != 'ambassador') or (not is_ambassador and payload['scope'] != 'admin'):
             raise exceptions.AuthenticationFailed('Invalid Scope!')
@@ -38,6 +34,16 @@ class JWTAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed('Invalid Token!')
 
         return (user, None)
+
+    @staticmethod
+    def get_payload(token):
+        try:
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise exceptions.AuthenticationFailed('Unauthenticated')
+
+        return payload
 
     @staticmethod
     def generate_jwt(id, scope):
