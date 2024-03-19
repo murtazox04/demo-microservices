@@ -6,8 +6,9 @@ class AuthMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        scope = 'ambassador' if 'api/ambassador' in request.path else 'admin'
         try:
-            user = UserService.get('user', headers=request.headers)
+            user = UserService.get('/user/' + scope, headers=request.headers)
         except:
             user = None
 
