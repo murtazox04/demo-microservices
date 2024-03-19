@@ -2,7 +2,7 @@ import requests
 
 
 class UserService:
-    endpoint = 'http://host.docker.internal:8001/api'
+    endpoint = 'http://users-ms:8000/api'
 
     @staticmethod
     def get(path, **kwargs):
