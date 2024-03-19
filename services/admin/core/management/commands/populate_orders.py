@@ -1,32 +1,36 @@
 from django.core.management import BaseCommand
-from faker import Faker
-from random import randrange
+
 from core.models import Order, OrderItem
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        faker = Faker()
+        orders = Order.objects.using('old').all()
 
-        for _ in range(3):
-            order = Order.objects.create(
-                user_id=35,
-                code='code',
-                ambassador_email='b@b.com',
-                first_name=faker.first_name(),
-                last_name=faker.last_name(),
-                email=faker.email(),
-                complete=True
+        for order in orders:
+            Order.objects.create(
+                id=order.id,
+                user_id=order.user_id,
+                code=order.code,
+                transaction_id=order.transaction_id,
+                ambassador_email=order.ambassador_email,
+                first_name=order.first_name,
+                last_name=order.last_name,
+                email=order.email,
+                address=order.address,
+                city=order.city,
+                zip=order.zip
             )
 
-            for _ in range(randrange(1, 5)):
-                price = randrange(10, 100)
-                quantity = randrange(1, 5)
-                OrderItem.objects.create(
-                    order_id=order.id,
-                    product_title=faker.name(),
-                    price=price,
-                    quantity=quantity,
-                    admin_revenue=.9 * price * quantity,
-                    ambassador_revenue=.1 * price * quantity
-                )
+        order_items = OrderItem.objects.using('old').all()
+
+        for order_item in order_items:
+            OrderItem.objects.create(
+                id=order_item.id,
+                order_id=order_item.order_id,
+                product_title=order_item.product_title,
+                price=order_item.price,
+                quantity=order_item.quantity,
+                admin_revenue=order_item.admin_revenue,
+                ambassador_revenue=order_item.ambassador_revenue
+            )

@@ -1,17 +1,16 @@
 from django.core.management import BaseCommand
-from faker import Faker
-from random import randrange
+
 from core.models import Product
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        faker = Faker()
+        products = Product.objects.using('old').all()
 
-        for _ in range(30):
+        for product in products:
             Product.objects.create(
-                title=faker.name(),
-                description=faker.text(100),
-                image=faker.image_url(),
-                price=randrange(10, 100)
+                title=product.title,
+                description=product.description,
+                image=product.image,
+                price=product.price
             )
