@@ -1,4 +1,5 @@
 import math
+import json
 import time
 import random
 import string
@@ -11,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django_redis import get_redis_connection
 
+from app.producer import producer
 from core.models import Product, Link, Order
 from .serializer import ProductSerializer, LinkSerializer
 
@@ -70,12 +72,15 @@ class LinkAPIView(APIView):
         user = request.user_ms
 
         serializer = LinkSerializer(data={
-            'user': user['id'],
+            'user_id': user['id'],
             'code': ''.join(random.choices(string.ascii_lowercase + string.digits, k=6)),
             'products': request.data['products']
         })
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        producer.produce("admin_topic", key="link_created",
+                         value=json.dumps(serializer.data))
 
         return Response(serializer.data)
 

@@ -1,14 +1,16 @@
+import json
 import stripe
+import decimal
 from django.db import transaction
+from django.forms import model_to_dict
 from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app.producer import producer
 from .serializers import LinkSerializer
 from common.services import UserService
 from core.models import Link, Order, Product, OrderItem
-import decimal
-from django.core.mail import send_mail
 
 
 class LinkAPIView(APIView):
@@ -103,22 +105,14 @@ class OrderConfirmAPIView(APIView):
         order.complete = 1
         order.save()
 
-        # Admin Email
-        send_mail(
-            subject='An Order has been completed',
-            message='Order #' + str(order.id) + 'with a total of $' +
-            str(order.admin_revenue) + ' has been completed!',
-            from_email='from@email.com',
-            recipient_list=['admin@admin.com']
-        )
+        data = model_to_dict(order)
+        data['admin_revenue'] = str(order.admin_revenue)
+        data['ambassador_revenue'] = str(order.ambassador_revenue)
+        json_data = json.dumps(data)
 
-        send_mail(
-            subject='An Order has been completed',
-            message='You earned $' +
-            str(order.ambassador_revenue) + ' from the link #' + order.code,
-            from_email='from@email.com',
-            recipient_list=[order.ambassador_email]
-        )
+        producer.produce('email_topic', key="order_created", data=json_data)
+        producer.produce('admin_topic', key="order_created", data=json_data)
+        producer.flush()
 
         return Response({
             'message': 'success'
