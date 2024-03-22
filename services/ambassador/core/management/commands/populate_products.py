@@ -9,6 +9,7 @@ class Command(BaseCommand):
 
         for product in products:
             Product.objects.create(
+                id=product.id,
                 title=product.title,
                 description=product.description,
                 image=product.image,

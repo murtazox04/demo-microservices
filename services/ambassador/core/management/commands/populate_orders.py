@@ -1,36 +1,23 @@
 from django.core.management import BaseCommand
+from django.db import connections
 
-from core.models import Order, OrderItem
+from core.models import Order
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        orders = Order.objects.using('old').all()
+        with connections['old'].cursor() as cursor:
+            cursor.execute('SELECT * FROM core_order WHERE complete = 1')
+            orders = cursor.fetchall()
 
-        for order in orders:
-            Order.objects.create(
-                id=order.id,
-                user_id=order.user_id,
-                code=order.code,
-                transaction_id=order.transaction_id,
-                ambassador_email=order.ambassador_email,
-                first_name=order.first_name,
-                last_name=order.last_name,
-                email=order.email,
-                address=order.address,
-                city=order.city,
-                zip=order.zip
-            )
+            for order in orders:
+                cursor.execute(
+                    'SELECT * FROM core_orderitem WHERE order_id = %s', [order[0]])
+                order_items = cursor.fetchall()
 
-        order_items = OrderItem.objects.using('old').all()
-
-        for order_item in order_items:
-            OrderItem.objects.create(
-                id=order_item.id,
-                order_id=order_item.order_id,
-                product_title=order_item.product_title,
-                price=order_item.price,
-                quantity=order_item.quantity,
-                admin_revenue=order_item.admin_revenue,
-                ambassador_revenue=order_item.ambassador_revenue
-            )
+                Order.objects.create(
+                    id=order[0],
+                    user_id=order[14],
+                    code=order[2],
+                    total=sum(item[5] for item in order_items)
+                )
