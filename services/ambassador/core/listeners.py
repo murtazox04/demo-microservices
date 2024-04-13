@@ -1,6 +1,6 @@
 from django.core.cache import cache
 
-from .models import Product
+from .models import Order, Product
 
 
 def clear_cache():
@@ -38,3 +38,16 @@ def product_deleted(data):
     clear_cache()
 
     Product.objects.filter(pk=data).delete()
+
+
+def order_created(data):
+    print(data)
+
+    order = Order()
+    order.id = data['id']
+    order.code = data['code']
+    order.user_id = data['user_id']
+    order.total = sum(
+        item['ambassador_revenue'] for item in data['order_items']
+    )
+    order.save()
