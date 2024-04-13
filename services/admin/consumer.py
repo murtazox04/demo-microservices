@@ -5,6 +5,9 @@ import django
 from decouple import config
 from confluent_kafka import Consumer
 
+import core.listeners
+from core.models import KafkaError
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
@@ -34,7 +37,16 @@ while True:
 
     import core.listeners
 
-    getattr(core.listeners, msg.key().decode('utf-8'))(json.loads(msg.value()))
+    try:
+        getattr(
+            core.listeners, msg.key().decode('utf-8'))(json.loads(msg.value()))
+    except Exception as e:
+        print(e)
+        KafkaError.objects.create(
+            key=msg.key(),
+            value=msg.value(),
+            error=e
+        )
 
 
 consumer.close()

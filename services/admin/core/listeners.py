@@ -18,9 +18,9 @@ def link_created(data):
 
 
 def order_created(data):
-    print(data)
-
     order = Order()
+    order.id = data['id']
+    order.transaction_id = data['transaction_id']
     order.code = data['code']
     order.user_id = data['user_id']
     order.ambassador_email = data['email']
@@ -35,6 +35,7 @@ def order_created(data):
 
     for item in data['order_items']:
         order_item = OrderItem()
+        order_item.id = item['id']
         order_item.order = order
         order_item.product_title = item['title']
         order_item.price = item['price']
