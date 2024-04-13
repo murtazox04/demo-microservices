@@ -2,6 +2,8 @@ version: '3.9'
 services:
   ambassador_backend:
     build: .
+    command: >
+      sh -c "python manage.py wait_for_db && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -12,6 +14,15 @@ services:
     networks:
       - ambassador
       - users
+
+  ambassador_queue:
+    build: .
+    command: >
+      sh -c "python manage.py wait_for_db && python consumer.py"
+    depends_on:
+      - ambassador_db
+    networks:
+      - ambassador
 
   ambassador_db:
     image: postgres
@@ -33,6 +44,7 @@ services:
 
 volumes:
   postgres:
+
 
 networks:
   ambassador:

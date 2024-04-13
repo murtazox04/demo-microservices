@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from django_redis import get_redis_connection
 
 from .services import UserService
+from config.producer import producer
 from .models import Product, Link, Order
 from .serializers import ProductSerializer, LinkSerializer
 
@@ -79,8 +80,8 @@ class LinkAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        # producer.produce("admin_topic", key="link_created",
-        #                  value=json.dumps(serializer.data))
+        producer.produce("admin_topic", key="link_created",
+                         value=json.dumps(serializer.data))
 
         return Response(serializer.data)
 
