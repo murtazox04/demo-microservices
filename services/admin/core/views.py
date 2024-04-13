@@ -1,8 +1,10 @@
+import json
 from rest_framework.views import APIView
 from rest_framework import generics, mixins
 from rest_framework.response import Response
 
 from .services import UserService
+from config.producer import producer
 from .models import Product, Link, Order
 from .serializers import ProductSerializer, LinkSerializer, OrderSerializer
 
@@ -84,26 +86,23 @@ class ProductGenericAPIView(
 
     def post(self, request):
         response = self.create(request)
-        # for key in cache.keys('*'):
-        #     if 'products_frontend' in key:
-        #         cache.delete(key)
-        # cache.delete('products_backend')
+        producer.produce(
+            'ambassador_topic', key='product_created', value=json.dumps(response.data)
+        )
         return response
 
     def put(self, request, pk=None):
         response = self.partial_update(request, pk)
-        # for key in cache.keys('*'):
-        #     if 'products_frontend' in key:
-        #         cache.delete(key)
-        # cache.delete('products_backend')
+        producer.produce(
+            'ambassador_topic', key='product_updated', value=json.dumps(response.data)
+        )
         return response
 
     def delete(self, request, pk=None):
         response = self.destroy(request, pk)
-        # for key in cache.keys('*'):
-        #     if 'products_frontend' in key:
-        #         cache.delete(key)
-        # cache.delete('products_backend')
+        producer.produce(
+            'ambassador_topic', key='product_deleted', value=json.dumps(pk)
+        )
         return response
 
 
