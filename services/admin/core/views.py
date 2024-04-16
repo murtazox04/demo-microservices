@@ -86,22 +86,34 @@ class ProductGenericAPIView(
 
     def post(self, request):
         response = self.create(request)
+        json_data = json.dumps(response.data)
         producer.produce(
-            'ambassador_topic', key='product_created', value=json.dumps(response.data)
+            'ambassador_topic', key='product_created', value=json_data
+        )
+        producer.produce(
+            'checkout_topic', key='product_created', value=json_data
         )
         return response
 
     def put(self, request, pk=None):
         response = self.partial_update(request, pk)
+        json_data = json.dumps(response.data)
         producer.produce(
-            'ambassador_topic', key='product_updated', value=json.dumps(response.data)
+            'ambassador_topic', key='product_updated', value=json_data
+        )
+        producer.produce(
+            'checkout_topic', key='product_updated', value=json_data
         )
         return response
 
     def delete(self, request, pk=None):
         response = self.destroy(request, pk)
+        json_data = json.dumps(pk)
         producer.produce(
-            'ambassador_topic', key='product_deleted', value=json.dumps(pk)
+            'ambassador_topic', key='product_deleted', value=json_data
+        )
+        producer.produce(
+            'checkout_topic', key='product_deleted', value=json_data
         )
         return response
 
