@@ -80,8 +80,10 @@ class LinkAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        producer.produce("admin_topic", key="link_created",
-                         value=json.dumps(serializer.data))
+        json_data = json.dumps(serializer.data)
+
+        producer.produce("admin_topic", key="link_created", value=json_data)
+        producer.produce("checkout_topic", key="link_created", value=json_data)
 
         return Response(serializer.data)
 
