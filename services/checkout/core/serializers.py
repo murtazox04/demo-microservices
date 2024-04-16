@@ -9,8 +9,16 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProductRelatedField(serializers.StringRelatedField):
+    def to_representation(self, value):
+        return ProductSerializer(value).data
+
+    def to_internal_value(self, data):
+        return data
+
+
 class LinkSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True)
+    products = ProductRelatedField(many=True)
 
     class Meta:
         model = Link

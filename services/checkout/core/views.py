@@ -19,7 +19,7 @@ class LinkAPIView(APIView):
         link = Link.objects.filter(code=code).first()
         serializer = LinkSerializer(link)
         data = serializer.data
-        user = UserService.get('/users/' + link.user_id)
+        user = UserService.get('/users/' + str(link.user_id))
         data['user'] = user
         return Response(data)
 
@@ -31,7 +31,7 @@ class OrderAPIView(APIView):
         data = request.data
         link = Link.objects.filter(code=data['code']).first()
 
-        user = UserService.get('/users/' + link.user_id)
+        user = UserService.get('/users/' + str(link.user_id))
 
         if not link:
             raise exceptions.APIException('Invalid code!')
@@ -113,10 +113,10 @@ class OrderConfirmAPIView(APIView):
         data['ambassador_revenue'] = str(order.ambassador_revenue)
         json_data = json.dumps(data)
 
-        producer.produce('email_topic', key="order_created", data=json_data)
-        producer.produce('admin_topic', key="order_created", data=json_data)
+        producer.produce('email_topic', key="order_created", value=json_data)
+        producer.produce('admin_topic', key="order_created", value=json_data)
         producer.produce('ambassador_topic',
-                         key="order_created", data=json_data)
+                         key="order_created", value=json_data)
         producer.flush()
 
         return Response({
